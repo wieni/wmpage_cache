@@ -1,0 +1,5 @@
+services:
+    wmpage_cache.commands.cache-clear:
+        class: Drupal\wmpage_cache\Commands\CacheClearCommands
+        arguments: ['@wmpage_cache.storage']
+        tags: [{ name: drush.command }]
