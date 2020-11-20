@@ -22,6 +22,8 @@ class Manager implements CacheTagsInvalidatorInterface
     protected $cacheKeyGenerator;
     /** @var CacheBuilderInterface */
     protected $cacheBuilder;
+    /** @var CacheHeaterInterface */
+    protected $heater;
     /** @var bool */
     protected $storeCache;
     /** @var bool */
@@ -39,6 +41,7 @@ class Manager implements CacheTagsInvalidatorInterface
         InvalidatorInterface $invalidator,
         CacheKeyGeneratorInterface $cacheKeyGenerator,
         CacheBuilderInterface $cacheBuilder,
+        CacheHeaterInterface $heater,
         $storeCache,
         $storeTags,
         $maxPurgesPerInvalidation,
@@ -50,6 +53,7 @@ class Manager implements CacheTagsInvalidatorInterface
         $this->invalidator = $invalidator;
         $this->cacheKeyGenerator = $cacheKeyGenerator;
         $this->cacheBuilder = $cacheBuilder;
+        $this->heater = $heater;
         $this->storeCache = $storeCache && $storeTags;
         $this->storeTags = $storeTags;
         $this->maxPurgesPerInvalidation = $maxPurgesPerInvalidation;
@@ -112,6 +116,7 @@ class Manager implements CacheTagsInvalidatorInterface
             foreach ($this->flushTriggerTags as $re) {
                 if (preg_match('#' . $re . '#', $tag)) {
                     $this->storage->flush();
+                    $this->heater->warmupAll();
                     return;
                 }
             }
