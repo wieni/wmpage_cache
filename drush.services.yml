@@ -1,5 +1,12 @@
 services:
     wmpage_cache.commands.cache-clear:
         class: Drupal\wmpage_cache\Commands\CacheClearCommands
-        arguments: ['@wmpage_cache.storage']
         tags: [{ name: drush.command }]
+        arguments:
+            - '@wmpage_cache.storage'
+
+    wmpage_cache.commands.cache-warmup:
+        class: Drupal\wmpage_cache\Commands\CacheWarmupCommands
+        tags: [{ name: drush.command }]
+        arguments:
+            - '@wmpage_cache.heater'
