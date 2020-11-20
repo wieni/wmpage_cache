@@ -121,6 +121,13 @@ parameters:
 
     wmpage_cache.heater.host_name: ''
     wmpage_cache.heater.base_url: 'https://localhost'
+    wmpage_cache.heater.included_pages:
+        entities:
+            node: {  }
+        routes:
+            my_module.custom_route:
+                route_parameter_key: route_parameter_value
+            my_module.other_custom_route: {  }
 
 services:
     wmpage_cache.storage:
@@ -173,6 +180,7 @@ services:
             - '@wmpage_cache.invalidator'
             - '@wmpage_cache.keygenerator'
             - '@wmpage_cache.builder'
+            - '@wmpage_cache.heater'
             - '%wmpage_cache.store%'
             - '%wmpage_cache.tags%'
             - '%wmpage_cache.max_purges_per_invalidation%'
@@ -257,7 +265,9 @@ services:
     wmpage_cache.heater:
         class: Drupal\wmpage_cache\CacheHeater
         arguments:
+            - '@entity_type.manager'
             - '@queue'
+            - '%wmpage_cache.heater.included_pages%'
 
     wmpage_cache.heater.client:
         class: GuzzleHttp\Client
