@@ -107,20 +107,31 @@ class Database implements StorageInterface
         return $q->execute()->fetchAll(\PDO::FETCH_COLUMN);
     }
 
-    public function getByTags(array $tags)
+    public function getByTags(array $tags): array
     {
         if (!$tags) {
             return [];
         }
 
         $q = $this->db->select(self::TABLE_ENTRIES, 'c')
-            ->fields('c', ['id']);
+            ->fields('c', []);
         $q->condition('c.expiry', time(), '>=');
         $q->innerJoin(self::TABLE_TAGS, 't', 't.id = c.id');
         $q->condition('t.tag', $tags, 'IN');
 
-        $ids = $q->execute()->fetchAll(\PDO::FETCH_COLUMN);
-        return $ids;
+        return array_map(
+            static function (array $data) {
+                return new Cache(
+                    $data['id'],
+                    $data['uri'],
+                    $data['method'],
+                    $data['content'],
+                    unserialize($data['headers'], ['allowed_classes' => false]),
+                    $data['expiry']
+                );
+            },
+            $q->execute()->fetchAll(\PDO::FETCH_ASSOC)
+        );
     }
 
     public function remove(array $ids)
