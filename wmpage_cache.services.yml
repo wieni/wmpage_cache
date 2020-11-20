@@ -119,6 +119,9 @@ parameters:
     # use a CDN that charges for invalidations. Set this number much lower.
     wmpage_cache.max_purges_per_invalidation: 100000
 
+    wmpage_cache.heater.host_name: ''
+    wmpage_cache.heater.base_url: 'https://localhost'
+
 services:
     wmpage_cache.storage:
         class: Drupal\wmpage_cache\Storage\StorageInterface
@@ -219,6 +222,7 @@ services:
         class: Drupal\wmpage_cache\Invalidator
         arguments:
             - '@wmpage_cache.storage'
+            - '@wmpage_cache.heater'
 
     wmpage_cache.maxage.default:
         class: Drupal\wmpage_cache\MaxAgeDecider
@@ -255,3 +259,16 @@ services:
         class: Drupal\wmpage_cache\GlobalCacheableMetadata
         arguments:
             - '@renderer'
+
+    wmpage_cache.heater:
+        class: Drupal\wmpage_cache\CacheHeater
+        arguments:
+            - '@queue'
+
+    wmpage_cache.heater.client:
+        class: GuzzleHttp\Client
+        arguments:
+            -   base_uri: '%wmpage_cache.heater.base_url%'
+                headers:
+                    host: '%wmpage_cache.heater.host_name%'
+                verify: false
