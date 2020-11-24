@@ -48,6 +48,13 @@ class Database implements StorageInterface
             $fields[] = 'headers';
         }
 
+        if (!$this->db->schema()->tableExists(self::TABLE_ENTRIES)) {
+            throw new NoSuchCacheEntryException(
+                reset($ids),
+                'Cache entry table does not exist.'
+            );
+        }
+
         $stmt = $this->db->select(self::TABLE_ENTRIES, 'c')
             ->fields('c', $fields)
             ->condition('c.id', $ids, 'IN')
@@ -62,6 +69,15 @@ class Database implements StorageInterface
     public function set(Cache $item, array $tags)
     {
         $id = $item->getId();
+
+        if (!$this->db->schema()->tableExists(self::TABLE_ENTRIES)) {
+            return;
+        }
+
+        if (!$this->db->schema()->tableExists(self::TABLE_TAGS)) {
+            return;
+        }
+
         $tx = $this->db->startTransaction(self::TX);
         $tags = array_unique($tags);
 
@@ -99,6 +115,10 @@ class Database implements StorageInterface
 
     public function getExpired($amount)
     {
+        if (!$this->db->schema()->tableExists(self::TABLE_ENTRIES)) {
+            return [];
+        }
+
         $q = $this->db->select(self::TABLE_ENTRIES, 'c')
             ->fields('c', ['id']);
         $q->condition('c.expiry', time(), '<');
@@ -110,6 +130,14 @@ class Database implements StorageInterface
     public function getByTags(array $tags)
     {
         if (!$tags) {
+            return [];
+        }
+
+        if (!$this->db->schema()->tableExists(self::TABLE_ENTRIES)) {
+            return [];
+        }
+
+        if (!$this->db->schema()->tableExists(self::TABLE_TAGS)) {
             return [];
         }
 
@@ -126,6 +154,14 @@ class Database implements StorageInterface
     public function remove(array $ids)
     {
         if (empty($ids)) {
+            return;
+        }
+
+        if (!$this->db->schema()->tableExists(self::TABLE_ENTRIES)) {
+            return;
+        }
+
+        if (!$this->db->schema()->tableExists(self::TABLE_TAGS)) {
             return;
         }
 
@@ -150,6 +186,10 @@ class Database implements StorageInterface
 
     public function flush()
     {
+        if (!$this->db->schema()->tableExists(self::TABLE_ENTRIES)) {
+            return;
+        }
+
         // Keep it transactional or risk a race with truncate?
         $ids = $this->db->select(self::TABLE_ENTRIES, 'c')
             ->fields('c', ['id'])
