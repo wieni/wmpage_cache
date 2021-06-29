@@ -141,6 +141,12 @@ services:
             - '@service_container'
             - '%wmpage_cache.builder%'
 
+    wmpage_cache.dispatcher:
+        class: Drupal\wmpage_cache\Dispatcher
+        arguments:
+            - '@event_dispatcher'
+            - '@renderer'
+
     wmpage_cache.invalidator:
         class: Drupal\wmpage_cache\InvalidatorInterface
         factory: Drupal\wmpage_cache\ServiceFactory::create
