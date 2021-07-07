@@ -36,9 +36,9 @@ interface StorageInterface
      *
      * @param string[] $tags
      *
-     * @return string[] The cache ids
+     * @return Cache[] The cache ids
      */
-    public function getByTags(array $tags);
+    public function getByTags(array $tags): array;
 
     /**
      * Remove expired items from storage.
