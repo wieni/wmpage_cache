@@ -145,7 +145,6 @@ services:
         class: Drupal\wmpage_cache\Dispatcher
         arguments:
             - '@event_dispatcher'
-            - '@renderer'
 
     wmpage_cache.invalidator:
         class: Drupal\wmpage_cache\InvalidatorInterface

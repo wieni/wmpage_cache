@@ -1,5 +1,7 @@
 <?php
 
+use Drupal\wmpage_cache\Dispatcher;
+
 /**
  * Implements @see hook_cron()
  */
@@ -30,4 +32,20 @@ function wmpage_cache_cache_flush(): void
     if ($ctr->getParameter('wmpage_cache.flush_on_cache_rebuild')) {
         $ctr->get('wmpage_cache.storage')->flush();
     }
+}
+
+/**
+ * Implements @see hook_page_attachments().
+ */
+function wmpage_cache_page_attachments(array &$attachments)
+{
+    $dispatcher = \Drupal::getContainer()
+        ->get('wmpage_cache.dispatcher');
+
+    if (!$dispatcher instanceof Dispatcher) {
+        return;
+    }
+
+    $dispatcher->getCacheableMetadata()
+        ->applyTo($attachments);
 }

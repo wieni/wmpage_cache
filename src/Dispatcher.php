@@ -19,15 +19,14 @@ class Dispatcher implements DispatcherInterface
 {
     /** @var EventDispatcherInterface */
     protected $dispatcher;
-    /** @var RendererInterface */
-    protected $renderer;
+    /** @var CacheableMetadata */
+    protected $metadata;
 
     public function __construct(
-        EventDispatcherInterface $dispatcher,
-        RendererInterface $renderer
+        EventDispatcherInterface $dispatcher
     ) {
         $this->dispatcher = $dispatcher;
-        $this->renderer = $renderer;
+        $this->metadata = new CacheableMetadata();
     }
 
     public function dispatchMainEntity(EntityInterface $entity)
@@ -47,22 +46,12 @@ class Dispatcher implements DispatcherInterface
 
     public function dispatchPresented(EntityInterface $entity): void
     {
-        $build = [];
-        (new CacheableMetadata())
-            ->addCacheableDependency($entity)
-            ->applyTo($build);
-
-        $this->renderer->render($build);
+        $this->metadata->addCacheableDependency($entity);
     }
 
     public function dispatchTags(array $tags): void
     {
-        $build = [];
-        (new CacheableMetadata())
-            ->setCacheTags($tags)
-            ->applyTo($build);
-
-        $this->renderer->render($build);
+        $this->metadata->addCacheTags($tags);
     }
 
     public function dispatchCacheInsertEvent(Cache $cache, Request $request, Response $response, array $tags): CacheInsertEvent
@@ -96,5 +85,10 @@ class Dispatcher implements DispatcherInterface
         );
 
         return $event;
+    }
+
+    public function getCacheableMetadata(): CacheableMetadata
+    {
+        return $this->metadata;
     }
 }
