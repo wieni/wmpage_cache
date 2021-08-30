@@ -33,7 +33,7 @@ class CacheSubscriber implements EventSubscriberInterface
     /** @var MaxAgeInterface */
     protected $maxAgeStrategy;
 
-    /** @var string */
+    /** @var bool */
     protected $addHeader;
     /** @var array */
     protected $strippedHeaders = [];
@@ -44,7 +44,7 @@ class CacheSubscriber implements EventSubscriberInterface
         Validation $validation,
         EnrichRequest $enrichRequest,
         MaxAgeInterface $maxAgeStrategy,
-        $addHeader,
+        bool $addHeader,
         array $strippedHeaders
     ) {
         $this->renderer = $renderer;
@@ -56,7 +56,7 @@ class CacheSubscriber implements EventSubscriberInterface
         $this->strippedHeaders = $strippedHeaders;
     }
 
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         $events[WmPageCacheEvents::CACHE_HANDLE][] = ['onEnrichRequest', 10001];
         $events[WmPageCacheEvents::CACHE_HANDLE][] = ['onGetCachedResponse', 10000];
@@ -66,7 +66,7 @@ class CacheSubscriber implements EventSubscriberInterface
         return $events;
     }
 
-    public function onEnrichRequest(GetResponseEvent $event)
+    public function onEnrichRequest(GetResponseEvent $event): void
     {
         // Do a faster-than-drupal user and session lookup
         // Fills the Request attribute with:
@@ -76,7 +76,7 @@ class CacheSubscriber implements EventSubscriberInterface
         $this->enrichRequest->enrichRequest($event->getRequest());
     }
 
-    public function onGetCachedResponse(GetResponseEvent $event)
+    public function onGetCachedResponse(GetResponseEvent $event): void
     {
         if (!$event->isMasterRequest()) {
             return;
@@ -107,7 +107,7 @@ class CacheSubscriber implements EventSubscriberInterface
         }
     }
 
-    public function onResponse(FilterResponseEvent $event)
+    public function onResponse(FilterResponseEvent $event): void
     {
         $request = $event->getRequest();
         $response = $event->getResponse();
@@ -155,7 +155,7 @@ class CacheSubscriber implements EventSubscriberInterface
         );
     }
 
-    public function onTerminate(PostResponseEvent $event)
+    public function onTerminate(PostResponseEvent $event): void
     {
         $request = $event->getRequest();
         $response = $event->getResponse();
@@ -172,7 +172,7 @@ class CacheSubscriber implements EventSubscriberInterface
         $this->manager->store($request, $response, $tags);
     }
 
-    protected function setMaxAge(Response $response, array $definition)
+    protected function setMaxAge(Response $response, array $definition): void
     {
         if (
             !isset($definition['maxage'])

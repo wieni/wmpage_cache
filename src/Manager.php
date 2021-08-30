@@ -39,9 +39,9 @@ class Manager implements CacheTagsInvalidatorInterface
         InvalidatorInterface $invalidator,
         CacheKeyGeneratorInterface $cacheKeyGenerator,
         CacheBuilderInterface $cacheBuilder,
-        $storeCache,
-        $storeTags,
-        $maxPurgesPerInvalidation,
+        bool $storeCache,
+        bool $storeTags,
+        int $maxPurgesPerInvalidation,
         array $ignoredCacheTags,
         array $flushTriggerTags
     ) {
@@ -57,7 +57,7 @@ class Manager implements CacheTagsInvalidatorInterface
         $this->flushTriggerTags = array_filter($flushTriggerTags);
     }
 
-    public function get(Request $request)
+    public function get(Request $request): Cache
     {
         if (!$this->storeCache) {
             throw new NoSuchCacheEntryException('cache_disabled');
@@ -68,7 +68,7 @@ class Manager implements CacheTagsInvalidatorInterface
         );
     }
 
-    public function store(Request $request, Response $response, array $tags)
+    public function store(Request $request, Response $response, array $tags): void
     {
         if (!$this->storeTags) {
             return;
@@ -92,7 +92,7 @@ class Manager implements CacheTagsInvalidatorInterface
         }
     }
 
-    public function invalidateTags(array $tags)
+    public function invalidateTags(array $tags): void
     {
         $filter = function ($tag): bool {
             foreach ($this->ignoredCacheTags as $re) {

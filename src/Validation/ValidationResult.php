@@ -4,9 +4,9 @@ namespace Drupal\wmpage_cache\Validation;
 
 use Drupal\Core\Access\AccessResultInterface;
 
-abstract class ValidationResult
+abstract class ValidationResult implements ValidationResultInterface
 {
-    /** @var \Drupal\Core\Access\AccessResultInterface */
+    /** @var AccessResultInterface */
     protected $result;
 
     public function __construct(AccessResultInterface $result)
@@ -14,11 +14,12 @@ abstract class ValidationResult
         $this->result = $result;
     }
 
-    public function result($method)
+    public function result(string $method): bool
     {
         if (!is_callable([$this, $method])) {
             return false;
         }
+
         return (bool) $this->{$method}();
     }
 }

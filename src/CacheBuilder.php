@@ -18,11 +18,11 @@ class CacheBuilder implements CacheBuilderInterface, CacheSerializerInterface
     }
 
     public function buildCacheEntity(
-        $id,
+        string $id,
         Request $request,
         Response $response,
         array $tags = []
-    ) {
+    ): Cache {
         $body = '';
         $headers = [];
         if ($this->storeCache) {
@@ -42,7 +42,7 @@ class CacheBuilder implements CacheBuilderInterface, CacheSerializerInterface
         );
     }
 
-    public function normalize(Cache $item, $includeContent = true)
+    public function normalize(Cache $item, bool $includeContent = true)
     {
         return [
             'id' => $item->getId(),
@@ -61,19 +61,19 @@ class CacheBuilder implements CacheBuilderInterface, CacheSerializerInterface
         ];
     }
 
-    public function denormalize($row)
+    public function denormalize($row): Cache
     {
         return new Cache(
-            $row['id'],
-            $row['uri'],
-            $row['method'],
+            (string) $row['id'],
+            (string) $row['uri'],
+            (string) $row['method'],
             empty($row['content']) ? null : gzuncompress(base64_decode($row['content'])),
-            empty($row['headers']) ? [] : unserialize($row['headers']),
-            $row['expiry']
+            empty($row['headers']) ? [] : unserialize($row['headers'], ['allowed_classes' => false]),
+            (int) $row['expiry']
         );
     }
 
-    protected function getMaxAge(Response $response)
+    protected function getMaxAge(Response $response): ?int
     {
         /**
          * The Cache-Control header allows for extensions.

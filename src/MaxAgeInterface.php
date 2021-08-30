@@ -7,5 +7,6 @@ use Symfony\Component\HttpFoundation\Response;
 
 interface MaxAgeInterface
 {
-    public function getMaxage(Request $request, Response $response);
+    /** @return array{'s-maxage': int, 'maxage': int, 'wm-s-maxage': int} */
+    public function getMaxage(Request $request, Response $response): array;
 }

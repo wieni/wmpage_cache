@@ -4,5 +4,5 @@ namespace Drupal\wmpage_cache;
 
 interface InvalidatorInterface
 {
-    public function invalidateCacheTags(array $tags);
+    public function invalidateCacheTags(array $tags): void;
 }

@@ -24,7 +24,7 @@ class CacheKeyGenerator implements CacheKeyGeneratorInterface
         $this->whitelistedQueryParams = $whitelistedQueryParams;
     }
 
-    public function generateCacheKey(Request $request)
+    public function generateCacheKey(Request $request): string
     {
         $uri = $this->getRequestUri($request);
         if ($roles = $this->getRoles($request)) {
@@ -33,11 +33,11 @@ class CacheKeyGenerator implements CacheKeyGeneratorInterface
         return sha1($uri);
     }
 
-    protected function getRequestUri(Request $request)
+    protected function getRequestUri(Request $request): string
     {
-        $uri = $request->getSchemeAndHttpHost() .
-            $request->getBaseUrl() .
-            $request->getPathInfo();
+        $uri = $request->getSchemeAndHttpHost()
+            . $request->getBaseUrl()
+            . $request->getPathInfo();
 
         $query = [];
         parse_str($request->getQueryString() ?: '', $query);
@@ -56,7 +56,7 @@ class CacheKeyGenerator implements CacheKeyGeneratorInterface
         return $uri;
     }
 
-    protected function getRoles(Request $request)
+    protected function getRoles(Request $request): array
     {
         if ($this->ignoreAuthenticatedUsers) {
             return [];
@@ -75,7 +75,7 @@ class CacheKeyGenerator implements CacheKeyGeneratorInterface
         return $this->groupRoles($roles);
     }
 
-    protected function groupRoles(array $roles)
+    protected function groupRoles(array $roles): array
     {
         if (!$roles) {
             return [];

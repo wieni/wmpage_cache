@@ -14,12 +14,14 @@ use Symfony\Component\HttpFoundation\Response;
 
 class Validation implements EventSubscriberInterface
 {
+    /** @var array<int, bool> */
     protected $cacheableStatusCodes = [
         Response::HTTP_OK => true,
         Response::HTTP_NON_AUTHORITATIVE_INFORMATION => true,
         Response::HTTP_NOT_FOUND => true,
     ];
 
+    /** @var array<string, bool> */
     protected $cacheableMethods = [
         Request::METHOD_GET => true,
         Request::METHOD_HEAD => true,
@@ -55,15 +57,15 @@ class Validation implements EventSubscriberInterface
         $this->ignoredRoles = $ignoredRoles;
     }
 
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         $events[WmPageCacheEvents::VALIDATE_CACHEABILITY_REQUEST][] = 'onShouldIgnoreRequest';
         $events[WmPageCacheEvents::VALIDATE_CACHEABILITY_RESPONSE][] = 'onShouldIgnoreResponse';
+
         return $events;
     }
 
-    /** @return CacheableRequestResult */
-    public function shouldIgnoreRequest(Request $request)
+    public function shouldIgnoreRequest(Request $request): CacheableRequestResult
     {
         // Don't even go through the motion if we are basically disabled
         if (!$this->storeResponse) {
@@ -83,8 +85,7 @@ class Validation implements EventSubscriberInterface
         return $event->result();
     }
 
-    /** @return CacheableResponseResult */
-    public function shouldIgnoreResponse(Request $request, Response $response)
+    public function shouldIgnoreResponse(Request $request, Response $response): CacheableResponseResult
     {
         // Don't even go through the motion if we are basically disabled
         if (!$this->storeResponse && !$this->storeTags) {
@@ -106,7 +107,7 @@ class Validation implements EventSubscriberInterface
         return $event->result();
     }
 
-    public function onShouldIgnoreRequest(ValidationEvent $event)
+    public function onShouldIgnoreRequest(ValidationEvent $event): void
     {
         $request = $event->getRequest();
 
@@ -116,7 +117,7 @@ class Validation implements EventSubscriberInterface
         $event->add($this->isNotAdmin($request));
     }
 
-    public function onShouldIgnoreResponse(ValidationEvent $event)
+    public function onShouldIgnoreResponse(ValidationEvent $event): void
     {
         $response = $event->getResponse();
         $request = $event->getRequest();
@@ -131,23 +132,23 @@ class Validation implements EventSubscriberInterface
         $event->add($this->isCacheableAccordingToDrupal($request, $response));
     }
 
-    protected function isAuthenticated(Request $request)
+    protected function isAuthenticated(Request $request): bool
     {
-        return $request->attributes->get(
+        return (bool) $request->attributes->get(
             EnrichRequest::AUTHENTICATED,
             true
         );
     }
 
-    protected function getUserId(Request $request)
+    protected function getUserId(Request $request): int
     {
-        return $request->attributes->get(
+        return (int) $request->attributes->get(
             EnrichRequest::UID,
             0
         );
     }
 
-    protected function getRoles(Request $request)
+    protected function getRoles(Request $request): array
     {
         return $request->attributes->get(
             EnrichRequest::ROLES,
@@ -155,7 +156,7 @@ class Validation implements EventSubscriberInterface
         );
     }
 
-    protected function isCacheableMethod(Request $request)
+    protected function isCacheableMethod(Request $request): AccessResult
     {
         return AccessResult::forbiddenIf(
             !isset($this->cacheableMethods[$request->getMethod()]),
@@ -163,7 +164,7 @@ class Validation implements EventSubscriberInterface
         );
     }
 
-    protected function authenticationCheck(Request $request)
+    protected function authenticationCheck(Request $request): AccessResult
     {
         return AccessResult::forbiddenIf(
             $this->ignoreAuthenticatedUsers && $this->isAuthenticated($request),
@@ -171,7 +172,7 @@ class Validation implements EventSubscriberInterface
         );
     }
 
-    protected function roleCheck(Request $request)
+    protected function roleCheck(Request $request): AccessResult
     {
         return AccessResult::forbiddenIf(
             !$this->ignoreAuthenticatedUsers
@@ -181,15 +182,15 @@ class Validation implements EventSubscriberInterface
         );
     }
 
-    protected function isNotAdmin(Request $request)
+    protected function isNotAdmin(Request $request): AccessResult
     {
         return AccessResult::forbiddenIf(
-            (int) $this->getUserId($request) === 1,
+            $this->getUserId($request) === 1,
             'Administrator'
         );
     }
 
-    protected function isCacheableStatusCode(Response $response)
+    protected function isCacheableStatusCode(Response $response): AccessResult
     {
         return AccessResult::forbiddenIf(
             !isset($this->cacheableStatusCodes[$response->getStatusCode()]),
@@ -200,7 +201,7 @@ class Validation implements EventSubscriberInterface
     protected function isCacheableAccordingToDrupal(
         Request $request,
         Response $response
-    ) {
+    ): AccessResult {
         $cacheable = $this->cacheResponsePolicy->check(
             $response,
             $request

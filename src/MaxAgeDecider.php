@@ -2,6 +2,7 @@
 
 namespace Drupal\wmpage_cache;
 
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\wmpage_cache\Event\MainEntityAlterEvent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -19,6 +20,7 @@ class MaxAgeDecider implements EventSubscriberInterface, MaxAgeInterface
     protected $eventDispatcher;
     /** @var array */
     protected $expiries;
+    /** @var array */
     protected $explicitMaxAges;
 
     public function __construct(
@@ -31,14 +33,14 @@ class MaxAgeDecider implements EventSubscriberInterface, MaxAgeInterface
         $this->expiries = $expiries + ['paths' => [], 'entities' => []];
     }
 
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         $events[KernelEvents::RESPONSE][] = ['onResponseEarly', 255];
 
         return $events;
     }
 
-    public function onResponseEarly(FilterResponseEvent $event)
+    public function onResponseEarly(FilterResponseEvent $event): void
     {
         if (!$event->isMasterRequest()) {
             return;
@@ -63,7 +65,7 @@ class MaxAgeDecider implements EventSubscriberInterface, MaxAgeInterface
         );
     }
 
-    public function getMaxage(Request $request, Response $response)
+    public function getMaxage(Request $request, Response $response): array
     {
         $explicit = $this->explicitMaxAges ?: [];
 
@@ -99,7 +101,7 @@ class MaxAgeDecider implements EventSubscriberInterface, MaxAgeInterface
         return $explicit + ['s-maxage' => 0, 'maxage' => 0, 'wm-s-maxage' => null];
     }
 
-    protected function getMaxAgesForMainEntity()
+    protected function getMaxAgesForMainEntity(): ?array
     {
         if (!$entity = $this->getMainEntity()) {
             return null;
@@ -121,7 +123,7 @@ class MaxAgeDecider implements EventSubscriberInterface, MaxAgeInterface
         return $bundleDefs[$bundle];
     }
 
-    protected function getMainEntity()
+    protected function getMainEntity(): ?EntityInterface
     {
         if (!$request = $this->requestStack->getCurrentRequest()) {
             return null;
@@ -140,8 +142,7 @@ class MaxAgeDecider implements EventSubscriberInterface, MaxAgeInterface
             WmPageCacheEvents::MAIN_ENTITY_ALTER,
             $event
         );
-        $entity = $event->getEntity();
 
-        return $entity;
+        return $event->getEntity();
     }
 }

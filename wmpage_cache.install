@@ -73,7 +73,7 @@ function wmpage_cache_schema()
     return $schema;
 }
 
-function wmpage_cache_update_8001()
+function wmpage_cache_update_8001(): void
 {
     drupal_install_schema('wmpage_cache');
 }

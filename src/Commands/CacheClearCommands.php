@@ -21,7 +21,7 @@ class CacheClearCommands extends DrushCommands
      *
      * @hook on-event cache-clear
      */
-    public function cacheClear(&$types, $include_bootstrapped_types)
+    public function cacheClear(&$types, $include_bootstrapped_types): void
     {
         if (!$include_bootstrapped_types) {
             return;

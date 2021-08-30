@@ -17,9 +17,9 @@ class EnrichRequest
 
     /** @var \SessionHandlerInterface */
     protected $sessionHandler;
-    /** @var \Drupal\Core\Session\SessionConfigurationInterface */
+    /** @var SessionConfigurationInterface */
     protected $sessionConfiguration;
-    /** @var \Drupal\Core\Database\Connection */
+    /** @var Connection */
     protected $db;
     /** @var bool */
     protected $ignoreAuthenticatedUsers;
@@ -36,7 +36,7 @@ class EnrichRequest
         $this->ignoreAuthenticatedUsers = $ignoreAuthenticatedUsers;
     }
 
-    public function enrichRequest(Request $request)
+    public function enrichRequest(Request $request): void
     {
         $hasSession = $this->sessionConfiguration->hasSession($request);
         $request->attributes->set(static::AUTHENTICATED, $hasSession);
@@ -81,7 +81,7 @@ class EnrichRequest
             }
         }
 
-        $uid = $bags['_sf2_attributes']['uid'] ?? 0;
+        $uid = (int) ($bags['_sf2_attributes']['uid'] ?? 0);
         $roles = [];
         try {
             $roles = $this->loadUserRoles($uid);
@@ -94,9 +94,9 @@ class EnrichRequest
         $request->attributes->set(static::ROLES, $roles);
     }
 
-    protected function loadUserRoles($uid)
+    protected function loadUserRoles(int $uid): array
     {
-        if ($uid == 0) {
+        if ($uid === 0) {
             return [AccountInterface::ANONYMOUS_ROLE];
         }
 
@@ -107,7 +107,7 @@ class EnrichRequest
         $q->groupBy('ur.roles_target_id');
 
         $roles = $q->execute()->fetchAll(\PDO::FETCH_COLUMN);
-        if ($uid === 1 || $uid === '1') {
+        if ($uid === 1) {
             $roles[] = 'administrator';
         }
 

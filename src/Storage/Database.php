@@ -13,9 +13,9 @@ class Database implements StorageInterface
     public const TABLE_ENTRIES = 'wmpage_cache';
     public const TABLE_TAGS = 'wmpage_cache_tags';
 
-    /** @var \Drupal\Core\Database\Connection */
+    /** @var Connection */
     protected $db;
-    /** @var \Drupal\wmpage_cache\CacheSerializerInterface */
+    /** @var CacheSerializerInterface */
     protected $serializer;
 
     public function __construct(
@@ -26,7 +26,7 @@ class Database implements StorageInterface
         $this->serializer = $serializer;
     }
 
-    public function load($id, $includeBody = true)
+    public function load(string $id, bool $includeBody = true): Cache
     {
         $item = $this->loadMultiple([$id], $includeBody)->current();
         if (!$item) {
@@ -36,7 +36,7 @@ class Database implements StorageInterface
         return $item;
     }
 
-    public function loadMultiple(array $ids, $includeBody = true): \Iterator
+    public function loadMultiple(array $ids, bool $includeBody = true): \Iterator
     {
         if (empty($ids)) {
             return;
@@ -66,7 +66,7 @@ class Database implements StorageInterface
         }
     }
 
-    public function set(Cache $item, array $tags)
+    public function set(Cache $item, array $tags): void
     {
         $id = $item->getId();
 
@@ -113,7 +113,7 @@ class Database implements StorageInterface
         unset($tx); // commit, btw this is marginaal AS FUCK.
     }
 
-    public function getExpired($amount)
+    public function getExpired(int $amount): array
     {
         if (!$this->db->schema()->tableExists(self::TABLE_ENTRIES)) {
             return [];
@@ -122,12 +122,12 @@ class Database implements StorageInterface
         $q = $this->db->select(self::TABLE_ENTRIES, 'c')
             ->fields('c', ['id']);
         $q->condition('c.expiry', time(), '<');
-        $q->range(0, (int) $amount);
+        $q->range(0, $amount);
 
         return $q->execute()->fetchAll(\PDO::FETCH_COLUMN);
     }
 
-    public function getByTags(array $tags)
+    public function getByTags(array $tags): array
     {
         if (!$tags) {
             return [];
@@ -146,12 +146,10 @@ class Database implements StorageInterface
         $q->condition('c.expiry', time(), '>=');
         $q->innerJoin(self::TABLE_TAGS, 't', 't.id = c.id');
         $q->condition('t.tag', $tags, 'IN');
-
-        $ids = $q->execute()->fetchAll(\PDO::FETCH_COLUMN);
-        return $ids;
+        return $q->execute()->fetchAll(\PDO::FETCH_COLUMN);
     }
 
-    public function remove(array $ids)
+    public function remove(array $ids): void
     {
         if (empty($ids)) {
             return;
@@ -184,7 +182,7 @@ class Database implements StorageInterface
         unset($tx); // commit, btw this is marginaal AS FUCK.
     }
 
-    public function flush()
+    public function flush(): void
     {
         if (!$this->db->schema()->tableExists(self::TABLE_ENTRIES)) {
             return;
@@ -200,7 +198,7 @@ class Database implements StorageInterface
         }
     }
 
-    protected function assocRowToEntry(array $row)
+    protected function assocRowToEntry(array $row): Cache
     {
         return $this->serializer->denormalize($row);
     }

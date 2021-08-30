@@ -6,17 +6,22 @@ use Drupal\wmpage_cache\Http\CachedResponse;
 
 class Cache
 {
+    /** @var string */
     protected $id;
+    /** @var string */
     protected $uri;
+    /** @var string */
     protected $method;
+    /** @var string */
     protected $body;
+    /** @var array<string, string> */
     protected $headers;
+    /** @var int */
     protected $expiry;
-
     /** @var CachedResponse */
     protected $response;
 
-    public function __construct($id, $uri, $method, $body, array $headers, $expiry)
+    public function __construct(string $id, string $uri, string $method, string $body, array $headers, int $expiry)
     {
         $this->id = $id;
         $this->uri = $uri;
@@ -26,44 +31,38 @@ class Cache
         $this->expiry = $expiry;
     }
 
-    /** @return string */
-    public function getId()
+    public function getId(): string
     {
         return $this->id;
     }
 
-    /** @return string */
-    public function getUri()
+    public function getUri(): string
     {
         return $this->uri;
     }
 
-    /** @return string */
-    public function getMethod()
+    public function getMethod(): string
     {
         return $this->method;
     }
 
-    /** @return string */
-    public function getBody()
+    public function getBody(): string
     {
         return $this->body;
     }
 
-    /** @return array */
-    public function getHeaders()
+    /** @return array<string, string> */
+    public function getHeaders(): array
     {
         return $this->headers;
     }
 
-    /** @return int */
-    public function getExpiry()
+    public function getExpiry(): int
     {
         return $this->expiry;
     }
 
-    /** @return CachedResponse */
-    public function toResponse()
+    public function toResponse(): CachedResponse
     {
         if (isset($this->response)) {
             return $this->response;

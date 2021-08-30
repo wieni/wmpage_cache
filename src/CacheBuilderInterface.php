@@ -7,11 +7,6 @@ use Symfony\Component\HttpFoundation\Response;
 
 interface CacheBuilderInterface
 {
-    /**
-     * @param string $id
-     * @param string[] $tags
-     *
-     * @return \Drupal\wmpage_cache\Cache
-     */
-    public function buildCacheEntity($id, Request $request, Response $response, array $tags = []);
+    /** @param string[] $tags */
+    public function buildCacheEntity(string $id, Request $request, Response $response, array $tags = []): Cache;
 }

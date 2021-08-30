@@ -10,17 +10,17 @@ class MainEntityAlterEvent extends Event
     /** @var EntityInterface|null */
     protected $entity;
 
-    public function __construct($entity)
+    public function __construct(?EntityInterface $entity)
     {
         $this->entity = $entity;
     }
 
-    public function getEntity()
+    public function getEntity(): ?EntityInterface
     {
         return $this->entity;
     }
 
-    public function setEntity($entity)
+    public function setEntity(?EntityInterface $entity): void
     {
         $this->entity = $entity;
     }
