@@ -250,8 +250,3 @@ services:
             - '%wmpage_cache.tags%'
             - '%wmpage_cache.ignore_roles%'
         tags: [{ name: event_subscriber }]
-
-    wmpage_cache.global_metadata:
-        class: Drupal\wmpage_cache\GlobalCacheableMetadata
-        arguments:
-            - '@renderer'
