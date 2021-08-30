@@ -1,0 +1,257 @@
+parameters:
+    # Expiry rules.
+    # maxage = client side caching duration
+    # s-maxage = server side caching duration (this can be drupal db or a cdn)
+    # wm-s-maxage = custom cache-control directive for different local cache ttl
+    wmpage_cache.expiry:
+        # Determine max and s-max based on content-type and/or bundle.
+        # _default is used when no definition is available for any given bundle.
+        entities:
+            node:
+                _default: { maxage: 120, s-maxage: 300 }
+                # example
+                #   Client side caching for 2 minutes
+                #   CDN caching for 5 minutes
+                #   Local db caching for 1 hour
+                #
+                # article: { maxage: 120, s-maxage: 300, wm-s-maxage: 3600 }
+            taxonomy_term:
+                _default: { maxage: 120, s-maxage: 300 }
+
+        # If the current page isn't rendering some kind of entity these regexes
+        # will determine which maxage will be set.
+        # The paths these regexes are matched against are the actual request paths,
+        # not the route name or route path. Query parameters are ignored
+        paths:
+            '^/$':           { maxage: 120, s-maxage: 300 }
+            # '^/admin/.*$':   { maxage: 0, s-maxage: 0 }
+            # '^/user(/.*)?$': { maxage: 0, s-maxage: 0 }
+            '.':             { maxage: 0, s-maxage: 0 }
+
+    # Ignore purges for tags that match these regexes.
+    wmpage_cache.ignored_tags:
+        - 'config:block.*'
+
+    # Triggers a flush for tags that match these regexes.
+    wmpage_cache.flush_triggers:
+        - ''
+
+    # Store the contents of the response and serve it.
+    # If disabled, only tags will be stored.
+    # This could be useful if the site is proxied by a cdn.
+    wmpage_cache.store: false
+
+    # Disables caching in its entirety, only add s-maxage and maxage headers.
+    # (Also implies wmpage_cache.store = false)
+    wmpage_cache.tags: false
+
+    # Add the X-Wm-Cache: HIT/MISS header.
+    wmpage_cache.hitheader: true
+
+    # Disable caching for authenticated users.
+    # Note: There is a small performance penalty when this is set to false.
+    wmpage_cache.ignore_authenticated_users: true
+
+    # If wmpage_cache.ignore_authenticated_users = false
+    # Skip cache entirely for these roles.
+    wmpage_cache.ignore_roles:
+        - 'administrator'
+        - 'editor'
+
+    # If wmpage_cache.ignore_authenticated_users = false
+    # Group cache entries for these roles.
+    # Note: This allows one path to cache different content based on roles.
+    # Make sure your caching layers ( CDN, Varnish, ... ) can handle this!
+    wmpage_cache.grouped_roles:
+          # The cache name.
+        - name: 'editors'
+
+          # Set strict to true if the user needs to have all roles to belong here.
+          strict: false
+
+          # The required role(s), if strict is true, the user needs to have all
+          # roles that are defined here to belong to this group.
+          roles:
+              - 'editor'
+
+        - name: 'anonymous'
+          roles:
+              - 'anonymous'
+
+    # Whitelisted query parameters.
+    # These query parameters become part of the internal cache key.
+    wmpage_cache.query.whitelist:
+        - 'page'
+
+    # Amount of items that should be purged during each cron run.
+    wmpage_cache.purge_per_cron: 100
+
+    # Flush all entries on `drush cr` or require `drush cc wmpage_cache`
+    wmpage_cache.flush_on_cache_rebuild: false
+
+    # The service responsible for storing cache entries
+    wmpage_cache.storage: wmpage_cache.storage.mysql
+
+    # The service responsible for deciding the max-age
+    wmpage_cache.maxage: wmpage_cache.maxage.default
+
+    # The service responsible for building the cache item
+    wmpage_cache.builder: wmpage_cache.builder.default
+
+    # The service responsible for deciding the max-age
+    # Note: make sure the serializer returns a format that is expected by the
+    # cache storage.
+    wmpage_cache.serializer: wmpage_cache.builder.default
+
+    # The service responsible for invalidating tags
+    wmpage_cache.invalidator: wmpage_cache.invalidator.default
+
+    # The service responsible for building the cache key
+    wmpage_cache.keygenerator: wmpage_cache.keygenerator.default
+
+    # List of response headers to strip
+    wmpage_cache.stripped_headers:
+        - 'x-ua-compatible'
+
+    # If an invalidation causes removal of more than this amount of pages
+    # a purge will be done instead. Useful if your CDN charges per path.
+    # Note: By default this number is set to an insanely high number. If you
+    # use a CDN that charges for invalidations. Set this number much lower.
+    wmpage_cache.max_purges_per_invalidation: 100000
+
+services:
+    wmpage_cache.storage:
+        class: Drupal\wmpage_cache\Storage\StorageInterface
+        factory: Drupal\wmpage_cache\ServiceFactory::create
+        arguments:
+            - '@service_container'
+            - '%wmpage_cache.storage%'
+
+    wmpage_cache.serializer:
+        class: Drupal\wmpage_cache\CacheSerializerInterface
+        factory: Drupal\wmpage_cache\ServiceFactory::create
+        arguments:
+            - '@service_container'
+            - '%wmpage_cache.serializer%'
+
+    wmpage_cache.builder:
+        class: Drupal\wmpage_cache\CacheBuilderInterface
+        factory: Drupal\wmpage_cache\ServiceFactory::create
+        arguments:
+            - '@service_container'
+            - '%wmpage_cache.builder%'
+
+    wmpage_cache.dispatcher:
+        class: Drupal\wmpage_cache\Dispatcher
+        arguments:
+            - '@event_dispatcher'
+            - '@renderer'
+
+    wmpage_cache.invalidator:
+        class: Drupal\wmpage_cache\InvalidatorInterface
+        factory: Drupal\wmpage_cache\ServiceFactory::create
+        arguments:
+            - '@service_container'
+            - '%wmpage_cache.invalidator%'
+
+    wmpage_cache.maxage:
+        class: Drupal\wmpage_cache\MaxAgeInterface
+        factory: Drupal\wmpage_cache\ServiceFactory::create
+        arguments:
+            - '@service_container'
+            - '%wmpage_cache.maxage%'
+
+    wmpage_cache.keygenerator:
+        class: Drupal\wmpage_cache\CacheKeyGeneratorInterface
+        factory: Drupal\wmpage_cache\ServiceFactory::create
+        arguments:
+            - '@service_container'
+            - '%wmpage_cache.keygenerator%'
+
+    wmpage_cache.manager:
+        class: Drupal\wmpage_cache\Manager
+        arguments:
+            - '@event_dispatcher'
+            - '@wmpage_cache.storage'
+            - '@wmpage_cache.invalidator'
+            - '@wmpage_cache.keygenerator'
+            - '@wmpage_cache.builder'
+            - '%wmpage_cache.store%'
+            - '%wmpage_cache.tags%'
+            - '%wmpage_cache.max_purges_per_invalidation%'
+            - '%wmpage_cache.ignored_tags%'
+            - '%wmpage_cache.flush_triggers%'
+        tags: [{ name: cache_tags_invalidator }]
+
+    wmpage_cache.subscriber:
+        class: Drupal\wmpage_cache\EventSubscriber\CacheSubscriber
+        arguments:
+            - '@renderer'
+            - '@wmpage_cache.manager'
+            - '@wmpage_cache.validation'
+            - '@wmpage_cache.enrich_request'
+            - '@wmpage_cache.maxage'
+            - '%wmpage_cache.hitheader%'
+            - '%wmpage_cache.stripped_headers%'
+        tags: [{ name: event_subscriber }]
+
+    wmpage_cache.enrich_request:
+        class: Drupal\wmpage_cache\EnrichRequest
+        arguments:
+            - '@session_handler.storage'
+            - '@session_configuration'
+            - '@database'
+            - '%wmpage_cache.ignore_authenticated_users%'
+
+    wmpage_cache.middleware:
+        class: Drupal\wmpage_cache\Http\Middleware\Cache
+        arguments:
+            - '@event_dispatcher'
+        tags: [{ name: http_middleware, priority: 250, responder: true }]
+
+    wmpage_cache.storage.mysql:
+        class: Drupal\wmpage_cache\Storage\Database
+        arguments:
+            - '@database'
+            - '@wmpage_cache.serializer'
+
+    wmpage_cache.invalidator.default:
+        class: Drupal\wmpage_cache\Invalidator
+        arguments:
+            - '@wmpage_cache.storage'
+
+    wmpage_cache.maxage.default:
+        class: Drupal\wmpage_cache\MaxAgeDecider
+        arguments:
+            - '@request_stack'
+            - '@event_dispatcher'
+            - '%wmpage_cache.expiry%'
+        tags: [{ name: event_subscriber }]
+
+    wmpage_cache.keygenerator.default:
+        class: Drupal\wmpage_cache\CacheKeyGenerator
+        arguments:
+            - '%wmpage_cache.ignore_authenticated_users%'
+            - '%wmpage_cache.grouped_roles%'
+            - '%wmpage_cache.query.whitelist%'
+
+    wmpage_cache.builder.default:
+        class: Drupal\wmpage_cache\CacheBuilder
+        arguments:
+            - '%wmpage_cache.store%'
+
+    wmpage_cache.validation:
+        class: Drupal\wmpage_cache\Validation\Validation
+        arguments:
+            - '@event_dispatcher'
+            - '@page_cache_response_policy'
+            - '%wmpage_cache.ignore_authenticated_users%'
+            - '%wmpage_cache.store%'
+            - '%wmpage_cache.tags%'
+            - '%wmpage_cache.ignore_roles%'
+        tags: [{ name: event_subscriber }]
+
+    wmpage_cache.global_metadata:
+        class: Drupal\wmpage_cache\GlobalCacheableMetadata
+        arguments:
+            - '@renderer'

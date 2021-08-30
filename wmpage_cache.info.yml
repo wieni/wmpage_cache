@@ -1,0 +1,6 @@
+name: Page Cache
+type: module
+description: 'Caches pages for anonymous users, with more customisability than the default page cache module'
+core: 8.x
+core_version_requirement: ^8 || ^9
+package: Wieni

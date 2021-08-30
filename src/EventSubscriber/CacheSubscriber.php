@@ -1,18 +1,16 @@
 <?php
 
-namespace Drupal\wmcontroller\EventSubscriber;
+namespace Drupal\wmpage_cache\EventSubscriber;
 
-use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Cache\CacheableResponseInterface;
-use Drupal\wmcontroller\Event\CacheTagsEvent;
-use Drupal\wmcontroller\Event\EntityPresentedEvent;
-use Drupal\wmcontroller\Exception\NoSuchCacheEntryException;
-use Drupal\wmcontroller\Http\CachedResponse;
-use Drupal\wmcontroller\Service\Cache\EnrichRequest;
-use Drupal\wmcontroller\Service\Cache\Manager;
-use Drupal\wmcontroller\Service\Cache\MaxAgeInterface;
-use Drupal\wmcontroller\Service\Cache\Validation\Validation;
-use Drupal\wmcontroller\WmcontrollerEvents;
+use Drupal\Core\Render\RendererInterface;
+use Drupal\wmpage_cache\EnrichRequest;
+use Drupal\wmpage_cache\Exception\NoSuchCacheEntryException;
+use Drupal\wmpage_cache\Http\CachedResponse;
+use Drupal\wmpage_cache\Manager;
+use Drupal\wmpage_cache\MaxAgeInterface;
+use Drupal\wmpage_cache\Validation\Validation;
+use Drupal\wmpage_cache\WmPageCacheEvents;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
@@ -24,32 +22,32 @@ class CacheSubscriber implements EventSubscriberInterface
 {
     public const CACHE_HEADER = 'X-Wm-Cache';
 
+    /** @var RendererInterface */
+    protected $renderer;
     /** @var Manager */
     protected $manager;
-
-    /** @var \Drupal\wmcontroller\Service\Cache\Validation\Validation */
+    /** @var Validation */
     protected $validation;
-
-    /** @var \Drupal\wmcontroller\Service\Cache\EnrichRequest */
+    /** @var EnrichRequest */
     protected $enrichRequest;
-
     /** @var MaxAgeInterface */
     protected $maxAgeStrategy;
 
+    /** @var string */
     protected $addHeader;
-
+    /** @var array */
     protected $strippedHeaders = [];
 
-    protected $presentedEntityTags = [];
-
     public function __construct(
+        RendererInterface $renderer,
         Manager $manager,
         Validation $validation,
         EnrichRequest $enrichRequest,
         MaxAgeInterface $maxAgeStrategy,
-        bool $addHeader,
+        $addHeader,
         array $strippedHeaders
     ) {
+        $this->renderer = $renderer;
         $this->manager = $manager;
         $this->validation = $validation;
         $this->maxAgeStrategy = $maxAgeStrategy;
@@ -60,12 +58,10 @@ class CacheSubscriber implements EventSubscriberInterface
 
     public static function getSubscribedEvents()
     {
-        $events[WmcontrollerEvents::CACHE_HANDLE][] = ['onEnrichRequest', 10001];
-        $events[WmcontrollerEvents::CACHE_HANDLE][] = ['onGetCachedResponse', 10000];
+        $events[WmPageCacheEvents::CACHE_HANDLE][] = ['onEnrichRequest', 10001];
+        $events[WmPageCacheEvents::CACHE_HANDLE][] = ['onGetCachedResponse', 10000];
         $events[KernelEvents::RESPONSE][] = ['onResponse', -255];
         $events[KernelEvents::TERMINATE][] = ['onTerminate', 0];
-        $events[WmcontrollerEvents::ENTITY_PRESENTED][] = ['onEntityPresented', 0];
-        $events[WmcontrollerEvents::CACHE_TAGS][] = ['onTags', 0];
 
         return $events;
     }
@@ -74,9 +70,9 @@ class CacheSubscriber implements EventSubscriberInterface
     {
         // Do a faster-than-drupal user and session lookup
         // Fills the Request attribute with:
-        // - '_wmcontroller.uid'
-        // - '_wmcontroller.roles'
-        // - '_wmcontroller.session'
+        // - '_wmpage_cache.uid'
+        // - '_wmpage_cache.roles'
+        // - '_wmpage_cache.session'
         $this->enrichRequest->enrichRequest($event->getRequest());
     }
 
@@ -117,8 +113,8 @@ class CacheSubscriber implements EventSubscriberInterface
         $response = $event->getResponse();
 
         if (
-            !$event->isMasterRequest()
-            || $response instanceof CachedResponse
+            $response instanceof CachedResponse
+            || !$event->isMasterRequest()
             || empty($response->getContent())
         ) {
             return;
@@ -159,44 +155,21 @@ class CacheSubscriber implements EventSubscriberInterface
         );
     }
 
-    public function onEntityPresented(EntityPresentedEvent $event)
-    {
-        foreach ($event->getCacheTags() as $tag) {
-            $this->presentedEntityTags[$tag] = true;
-        }
-    }
-
-    public function onTags(CacheTagsEvent $event)
-    {
-        foreach ($event->getCacheTags() as $tag) {
-            $this->presentedEntityTags[$tag] = true;
-        }
-    }
-
     public function onTerminate(PostResponseEvent $event)
     {
         $request = $event->getRequest();
         $response = $event->getResponse();
 
         if (
-            !$event->isMasterRequest()
+            !$response instanceof CacheableResponseInterface
+            || !$event->isMasterRequest()
             || !$response->isCacheable()
         ) {
             return;
         }
 
-        $metadata = new CacheableMetadata();
-        $metadata->addCacheTags(
-            array_keys($this->presentedEntityTags)
-        );
-
-        if ($response instanceof CacheableResponseInterface) {
-            $metadata->addCacheTags(
-                $response->getCacheableMetadata()->getCacheTags()
-            );
-        }
-
-        $this->manager->store($request, $response, $metadata->getCacheTags());
+        $tags = $response->getCacheableMetadata()->getCacheTags();
+        $this->manager->store($request, $response, $tags);
     }
 
     protected function setMaxAge(Response $response, array $definition)
@@ -221,7 +194,7 @@ class CacheSubscriber implements EventSubscriberInterface
         // But since clients ought to ignore it if a maxage is set,
         // it's pretty useless.
         //
-        // Can be fixed from WmcontrollerServiceProvider using
+        // Can be fixed from WmpageCacheServiceProvider using
         // $container->removeDefinition('http_middleware.page_cache');
         $response->headers->remove('expires');
 

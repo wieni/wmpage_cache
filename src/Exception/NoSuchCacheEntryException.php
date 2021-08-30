@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\wmcontroller\Exception;
+namespace Drupal\wmpage_cache\Exception;
 
 class NoSuchCacheEntryException extends \RuntimeException
 {

@@ -1,0 +1,33 @@
+<?php
+
+/**
+ * Implements hook_cron()
+ */
+function wmpage_cache_cron()
+{
+    wmpage_cache_cron_purge_expired();
+}
+
+/**
+ * Purge expired wmpage_cache_cache items.
+ */
+function wmpage_cache_cron_purge_expired()
+{
+    $ctr = Drupal::getContainer();
+    $ctr->get('wmpage_cache.storage')->remove(
+        $ctr->get('wmpage_cache.storage')->getExpired(
+            $ctr->getParameter('wmpage_cache.purge_per_cron')
+        )
+    );
+}
+
+/**
+ * Implements hook_cache_flush().
+ */
+function wmpage_cache_cache_flush()
+{
+    $ctr = \Drupal::getContainer();
+    if ($ctr->getParameter('wmpage_cache.flush_on_cache_rebuild')) {
+        $ctr->get('wmpage_cache.storage')->flush();
+    }
+}

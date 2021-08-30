@@ -1,9 +1,9 @@
 <?php
 
-namespace Drupal\wmcontroller\Event;
+namespace Drupal\wmpage_cache\Event;
 
-use Drupal\wmcontroller\Entity\Cache;
-use Drupal\Component\EventDispatcher\Event;
+use Drupal\wmpage_cache\Cache;
+use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 

@@ -1,18 +1,17 @@
 <?php
 
-namespace Drupal\wmcontroller\Http\Middleware;
+namespace Drupal\wmpage_cache\Http\Middleware;
 
-use Drupal\wmcontroller\WmcontrollerEvents;
+use Drupal\wmpage_cache\WmPageCacheEvents;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
 class Cache implements HttpKernelInterface
 {
     /** @var HttpKernelInterface */
     protected $next;
-
     /** @var EventDispatcherInterface */
     protected $dispatcher;
 
@@ -33,11 +32,11 @@ class Cache implements HttpKernelInterface
             return $this->next->handle($request, $type, $catch);
         }
 
-        $event = new RequestEvent($this, $request, $type);
+        $event = new GetResponseEvent($this, $request, $type);
 
         $this->dispatcher->dispatch(
-            $event,
-            WmcontrollerEvents::CACHE_HANDLE
+            WmPageCacheEvents::CACHE_HANDLE,
+            $event
         );
 
         if ($event->hasResponse()) {

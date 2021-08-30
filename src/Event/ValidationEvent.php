@@ -1,19 +1,20 @@
 <?php
 
-namespace Drupal\wmcontroller\Event;
+namespace Drupal\wmpage_cache\Event;
 
 use Drupal\Core\Access\AccessResult;
-use Drupal\wmcontroller\Service\Cache\Validation\ValidationResult;
-use Drupal\Component\EventDispatcher\Event;
+use Drupal\wmpage_cache\Validation\ValidationResult;
+use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class ValidationEvent extends Event
 {
-    /** @var \Symfony\Component\HttpFoundation\Request */
+    /** @var Request */
     protected $request;
-    /** @var \Symfony\Component\HttpFoundation\Response */
+    /** @var Response */
     protected $response;
+    /** @var string */
     protected $resultClass;
 
     protected $result;
@@ -26,13 +27,13 @@ class ValidationEvent extends Event
         $this->response = $response;
     }
 
-    /** @return \Symfony\Component\HttpFoundation\Request */
+    /** @return Request */
     public function getRequest()
     {
         return $this->request;
     }
 
-    /** @return \Symfony\Component\HttpFoundation\Response */
+    /** @return Response */
     public function getResponse()
     {
         return $this->response;
@@ -47,7 +48,7 @@ class ValidationEvent extends Event
     /**
      * Check whether or not this request or response should be cached.
      *
-     * @return \Drupal\wmcontroller\Service\Cache\Validation\ValidationResult
+     * @return ValidationResult
      */
     public function result()
     {

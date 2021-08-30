@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\wmcontroller\Http;
+namespace Drupal\wmpage_cache\Http;
 
 use Symfony\Component\HttpFoundation\Response;
 

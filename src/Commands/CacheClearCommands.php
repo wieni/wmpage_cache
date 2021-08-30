@@ -1,22 +1,23 @@
 <?php
 
-namespace Drupal\wmcontroller\Commands;
+namespace Drupal\wmpage_cache\Commands;
 
-use Drupal\wmcontroller\Service\Cache\Storage\StorageInterface;
+use Drupal\wmpage_cache\Storage\StorageInterface;
 use Drush\Commands\DrushCommands;
 
 class CacheClearCommands extends DrushCommands
 {
-    /** @var \Drupal\wmcontroller\Service\Cache\Storage\StorageInterface */
+    /** @var StorageInterface */
     protected $storage;
 
-    public function __construct(StorageInterface $storage)
-    {
+    public function __construct(
+        StorageInterface $storage
+    ) {
         $this->storage = $storage;
     }
 
     /**
-     * Adds a cache clear option for wmcontroller.
+     * Adds a cache clear option.
      *
      * @hook on-event cache-clear
      */
@@ -26,6 +27,6 @@ class CacheClearCommands extends DrushCommands
             return;
         }
 
-        $types['wmcontroller'] = [$this->storage, 'flush'];
+        $types['wmpage_cache'] = [$this->storage, 'flush'];
     }
 }
