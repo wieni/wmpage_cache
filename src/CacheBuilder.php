@@ -12,7 +12,7 @@ class CacheBuilder implements CacheBuilderInterface, CacheSerializerInterface
     /** @var array */
     protected $ignoredHeaders;
 
-    public function __construct($storeCache = true)
+    public function __construct(bool $storeCache = true)
     {
         $this->storeCache = $storeCache;
     }
@@ -42,7 +42,7 @@ class CacheBuilder implements CacheBuilderInterface, CacheSerializerInterface
         );
     }
 
-    public function normalize(Cache $item, bool $includeContent = true)
+    public function normalize(Cache $item, bool $includeContent = true): array
     {
         return [
             'id' => $item->getId(),
@@ -61,7 +61,7 @@ class CacheBuilder implements CacheBuilderInterface, CacheSerializerInterface
         ];
     }
 
-    public function denormalize($row): Cache
+    public function denormalize(array $row): Cache
     {
         return new Cache(
             (string) $row['id'],

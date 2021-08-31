@@ -4,9 +4,7 @@ namespace Drupal\wmpage_cache;
 
 interface CacheSerializerInterface
 {
-    /** @return mixed */
-    public function normalize(Cache $cache, bool $includeContent = true);
+    public function normalize(Cache $cache, bool $includeContent = true): array;
 
-    /** @param $row mixed */
-    public function denormalize($row): Cache;
+    public function denormalize(array $row): Cache;
 }
