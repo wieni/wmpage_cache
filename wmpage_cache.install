@@ -1,9 +1,11 @@
 <?php
 
+use Drupal\Core\Database\Database;
+
 /**
- * Implements hook_schema()
+ * Implements @see hook_schema()
  */
-function wmpage_cache_schema()
+function wmpage_cache_schema(): array
 {
     $schema['wmpage_cache'] = [
         'description' => 'Stores cacheable responses',
@@ -44,6 +46,12 @@ function wmpage_cache_schema()
                 'not null' => true,
                 'size' => 'normal', // Will fail after 2106, next generation's problem.
             ],
+            'checksum' => [
+                'description' => 'The tag invalidation checksum when this entry was saved.',
+                'type' => 'varchar_ascii',
+                'length' => 255,
+                'not null' => true,
+            ],
         ],
         'primary key' => ['id'],
         'indexes' => [
@@ -73,7 +81,25 @@ function wmpage_cache_schema()
     return $schema;
 }
 
-function wmpage_cache_update_8001(): void
+/**
+ * Implements @see hook_update_last_removed()
+ */
+function wmpage_cache_update_last_removed(): int
 {
-    drupal_install_schema('wmpage_cache');
+    return 8001;
+}
+
+/**
+ * Add checksum column to the wmpage_cache table
+ */
+function wmpage_cache_update_8002(): void
+{
+    $spec = [
+        'description' => 'The tag invalidation checksum when this entry was saved.',
+        'type' => 'varchar_ascii',
+        'length' => 255,
+        'not null' => true,
+    ];
+    $schema = Database::getConnection()->schema();
+    $schema->addField('wmpage_cache', 'checksum', $spec);
 }

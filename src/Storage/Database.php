@@ -42,7 +42,7 @@ class Database implements StorageInterface
             return;
         }
 
-        $fields = ['id', 'uri', 'method', 'expiry'];
+        $fields = ['id', 'uri', 'method', 'expiry', 'checksum'];
         if ($includeBody) {
             $fields[] = 'content';
             $fields[] = 'headers';
