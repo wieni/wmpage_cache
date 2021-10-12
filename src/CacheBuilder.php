@@ -67,7 +67,7 @@ class CacheBuilder implements CacheBuilderInterface, CacheSerializerInterface
             (string) $row['id'],
             (string) $row['uri'],
             (string) $row['method'],
-            empty($row['content']) ? null : gzuncompress(base64_decode($row['content'])),
+            empty($row['content']) ? '' : gzuncompress(base64_decode($row['content'])),
             empty($row['headers']) ? [] : unserialize($row['headers'], ['allowed_classes' => false]),
             (int) $row['expiry']
         );
