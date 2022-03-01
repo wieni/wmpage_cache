@@ -1,5 +1,6 @@
 <?php
 
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\wmpage_cache\Dispatcher;
 
 /**
@@ -47,5 +48,6 @@ function wmpage_cache_page_attachments(array &$attachments)
     }
 
     $dispatcher->getCacheableMetadata()
+        ->merge(CacheableMetadata::createFromRenderArray($attachments))
         ->applyTo($attachments);
 }
