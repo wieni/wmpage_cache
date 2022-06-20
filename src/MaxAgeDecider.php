@@ -132,9 +132,11 @@ class MaxAgeDecider implements EventSubscriberInterface, MaxAgeInterface
         $entity = null;
         $routeName = $request->attributes->get('_route');
 
-        preg_match('/entity\.(?<entityTypeId>.+)\.canonical/', $routeName, $matches);
-        if (isset($matches['entityTypeId'])) {
-            $entity = $request->attributes->get($matches['entityTypeId']);
+        if (is_string($routeName)) {
+            preg_match('/entity\.(?<entityTypeId>.+)\.canonical/', $routeName, $matches);
+            if (isset($matches['entityTypeId'])) {
+                $entity = $request->attributes->get($matches['entityTypeId']);
+            }
         }
 
         $event = new MainEntityAlterEvent($entity);
