@@ -9,7 +9,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 class MaxAgeDecider implements EventSubscriberInterface, MaxAgeInterface
@@ -40,9 +40,9 @@ class MaxAgeDecider implements EventSubscriberInterface, MaxAgeInterface
         return $events;
     }
 
-    public function onResponseEarly(FilterResponseEvent $event): void
+    public function onResponseEarly(ResponseEvent $event): void
     {
-        if (!$event->isMasterRequest()) {
+        if (!$event->isMainRequest()) {
             return;
         }
 
@@ -157,8 +157,8 @@ class MaxAgeDecider implements EventSubscriberInterface, MaxAgeInterface
 
         $event = new MainEntityAlterEvent($entity);
         $this->eventDispatcher->dispatch(
-            WmPageCacheEvents::MAIN_ENTITY_ALTER,
-            $event
+            $event,
+            WmPageCacheEvents::MAIN_ENTITY_ALTER
         );
 
         return $event->getEntity();

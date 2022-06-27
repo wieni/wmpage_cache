@@ -37,8 +37,8 @@ class Dispatcher implements DispatcherInterface
 
         $event = new MainEntityEvent($entity);
         $this->dispatcher->dispatch(
-            WmcontrollerEvents::MAIN_ENTITY_RENDER,
-            $event
+            $event,
+            WmcontrollerEvents::MAIN_ENTITY_RENDER
         );
 
         return $event;
@@ -58,8 +58,8 @@ class Dispatcher implements DispatcherInterface
     {
         $event = new CacheInsertEvent($cache, $tags, $request, $response);
         $this->dispatcher->dispatch(
-            WmPageCacheEvents::CACHE_INSERT,
-            $event
+            $event,
+            WmPageCacheEvents::CACHE_INSERT
         );
 
         return $event;
@@ -69,8 +69,8 @@ class Dispatcher implements DispatcherInterface
     {
         $event = new ValidationEvent($request, null, CacheableRequestResult::class);
         $this->dispatcher->dispatch(
-            WmPageCacheEvents::VALIDATE_CACHEABILITY_REQUEST,
-            $event
+            $event,
+            WmPageCacheEvents::VALIDATE_CACHEABILITY_REQUEST
         );
 
         return $event;
@@ -80,8 +80,8 @@ class Dispatcher implements DispatcherInterface
     {
         $event = new ValidationEvent($request, $response, CacheableResponseResult::class);
         $this->dispatcher->dispatch(
-            WmPageCacheEvents::VALIDATE_CACHEABILITY_RESPONSE,
-            $event
+            $event,
+            WmPageCacheEvents::VALIDATE_CACHEABILITY_RESPONSE
         );
 
         return $event;

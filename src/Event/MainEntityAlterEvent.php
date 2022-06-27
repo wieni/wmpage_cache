@@ -2,8 +2,8 @@
 
 namespace Drupal\wmpage_cache\Event;
 
+use Drupal\Component\EventDispatcher\Event;
 use Drupal\Core\Entity\EntityInterface;
-use Symfony\Component\EventDispatcher\Event;
 
 class MainEntityAlterEvent extends Event
 {
