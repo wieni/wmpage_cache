@@ -73,6 +73,12 @@ class MaxAgeDecider implements EventSubscriberInterface, MaxAgeInterface
             return $explicit;
         }
 
+        if ($request->attributes->has('node_preview')) {
+            return $explicit + [
+                'maxage' => 0,
+            ];
+        }
+
         if (
             $request->attributes->has('_smaxage')
             || $request->attributes->has('_maxage')
