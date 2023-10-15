@@ -199,6 +199,7 @@ class CacheSubscriber implements EventSubscriberInterface
         $response->headers->remove('expires');
 
         if (!empty($definition['maxage'])) {
+            $response->setPublic();
             $response->setMaxAge($definition['maxage']);
         }
 
