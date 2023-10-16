@@ -99,10 +99,6 @@ class CacheSubscriber implements EventSubscriberInterface
                 $response->headers->set(self::CACHE_HEADER, 'HIT');
             }
 
-            if (empty($response->getContent())) {
-                return;
-            }
-
             $event->setResponse($response);
         } catch (NoSuchCacheEntryException $e) {
         }
