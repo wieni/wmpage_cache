@@ -92,7 +92,6 @@ class CacheSubscriber implements EventSubscriberInterface
         try {
             $response = $this->manager->get($request)->toResponse();
             // Check if we should respond with a 304
-            // Not relevant atm with cache-control: max-age
             $response->isNotModified($request);
 
             if ($this->addHeader) {
