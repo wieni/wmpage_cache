@@ -91,12 +91,6 @@ class Validation implements EventSubscriberInterface
 
     public function shouldIgnoreResponse(Request $request, Response $response): CacheableResponseResult
     {
-        // Don't even go through the motion if we are basically disabled
-        if (!$this->storeResponse && !$this->storeTags) {
-            // Neutral because the page might be cacheable, we just don't care.
-            return new CacheableResponseResult(AccessResult::neutral());
-        }
-
         $event = new ValidationEvent(
             $request,
             $response,
