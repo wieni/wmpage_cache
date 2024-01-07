@@ -112,6 +112,9 @@ parameters:
     # The service responsible for building the cache key
     wmpage_cache.keygenerator: wmpage_cache.keygenerator.default
 
+    # The service responsible for calculating the cache tags checksum
+    wmpage_cache.checksum: cache_tags.invalidator.checksum
+
     # List of response headers to strip
     wmpage_cache.stripped_headers:
         - 'x-ua-compatible'
@@ -169,6 +172,13 @@ services:
         arguments:
             - '@service_container'
             - '%wmpage_cache.keygenerator%'
+
+    wmpage_cache.checksum:
+        class: Drupal\Core\Cache\CacheTagsChecksumInterface
+        factory: Drupal\wmpage_cache\ServiceFactory::create
+        arguments:
+            - '@service_container'
+            - '%wmpage_cache.checksum%'
 
     wmpage_cache.manager:
         class: Drupal\wmpage_cache\Manager
@@ -240,6 +250,7 @@ services:
     wmpage_cache.builder.default:
         class: Drupal\wmpage_cache\CacheBuilder
         arguments:
+            - '@wmpage_cache.checksum'
             - '%wmpage_cache.store%'
 
     wmpage_cache.validation:

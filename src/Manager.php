@@ -2,6 +2,7 @@
 
 namespace Drupal\wmpage_cache;
 
+use Drupal\Core\Cache\CacheTagsChecksumInterface;
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\wmpage_cache\Event\CacheInsertEvent;
 use Drupal\wmpage_cache\Exception\NoSuchCacheEntryException;
@@ -80,6 +81,11 @@ class Manager implements CacheTagsInvalidatorInterface
             $response,
             $tags
         );
+
+        // Avoid useless writes.
+        if ($cache->getChecksum() === CacheTagsChecksumInterface::INVALID_CHECKSUM_WHILE_IN_TRANSACTION) {
+            return;
+        }
 
         $event = new CacheInsertEvent($cache, $tags, $request, $response);
         $this->eventDispatcher->dispatch(
