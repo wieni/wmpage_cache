@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2024-01-07
+### Added
+- Add Drupal 10 support
+- Add Last-Modified and ETag headers
+
+### Removed
+- Remove Drupal 8 support
+
+### Fixed
+- Fix `ValidationEvent` not being dispatched
+
 ## [1.0.0-alpha4] - 2023-10-30
 ### Fixed
 - Mark http responses with status codes `300`, `301`, `302` and `410` cacheable
