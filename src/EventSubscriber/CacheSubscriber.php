@@ -2,6 +2,7 @@
 
 namespace Drupal\wmpage_cache\EventSubscriber;
 
+use Drupal\Component\Datetime\DateTimePlus;
 use Drupal\Core\Cache\CacheableResponseInterface;
 use Drupal\Core\Render\RendererInterface;
 use Drupal\wmpage_cache\EnrichRequest;
@@ -91,15 +92,10 @@ class CacheSubscriber implements EventSubscriberInterface
         try {
             $response = $this->manager->get($request)->toResponse();
             // Check if we should respond with a 304
-            // Not relevant atm with cache-control: max-age
             $response->isNotModified($request);
 
             if ($this->addHeader) {
                 $response->headers->set(self::CACHE_HEADER, 'HIT');
-            }
-
-            if (empty($response->getContent())) {
-                return;
             }
 
             $event->setResponse($response);
@@ -153,6 +149,17 @@ class CacheSubscriber implements EventSubscriberInterface
             $response,
             $this->maxAgeStrategy->getMaxage($request, $response)
         );
+
+        // In order to support HTTP cache-revalidation, ensure that there is a
+        // Last-Modified and an ETag header on the response.
+        if (!$response->headers->has('Last-Modified')) {
+            $timestamp = \Drupal::time()->getRequestTime();
+            $response->setLastModified(new \DateTime(gmdate(DateTimePlus::RFC7231, $timestamp)));
+        } else {
+            $timestamp = $response->getLastModified()->getTimestamp();
+        }
+
+        $response->setEtag($timestamp);
     }
 
     public function onTerminate(TerminateEvent $event): void
