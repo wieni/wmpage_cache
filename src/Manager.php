@@ -83,8 +83,8 @@ class Manager implements CacheTagsInvalidatorInterface
 
         $event = new CacheInsertEvent($cache, $tags, $request, $response);
         $this->eventDispatcher->dispatch(
-            WmPageCacheEvents::CACHE_INSERT,
-            $event
+            $event,
+            WmPageCacheEvents::CACHE_INSERT
         );
 
         if ($event->getCache()) {

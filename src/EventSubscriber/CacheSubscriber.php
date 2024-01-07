@@ -13,9 +13,9 @@ use Drupal\wmpage_cache\Validation\Validation;
 use Drupal\wmpage_cache\WmPageCacheEvents;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
-use Symfony\Component\HttpKernel\Event\GetResponseEvent;
-use Symfony\Component\HttpKernel\Event\PostResponseEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
+use Symfony\Component\HttpKernel\Event\TerminateEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 class CacheSubscriber implements EventSubscriberInterface
@@ -66,7 +66,7 @@ class CacheSubscriber implements EventSubscriberInterface
         return $events;
     }
 
-    public function onEnrichRequest(GetResponseEvent $event): void
+    public function onEnrichRequest(RequestEvent $event): void
     {
         // Do a faster-than-drupal user and session lookup
         // Fills the Request attribute with:
@@ -76,9 +76,9 @@ class CacheSubscriber implements EventSubscriberInterface
         $this->enrichRequest->enrichRequest($event->getRequest());
     }
 
-    public function onGetCachedResponse(GetResponseEvent $event): void
+    public function onGetCachedResponse(RequestEvent $event): void
     {
-        if (!$event->isMasterRequest()) {
+        if (!$event->isMainRequest()) {
             return;
         }
 
@@ -107,14 +107,14 @@ class CacheSubscriber implements EventSubscriberInterface
         }
     }
 
-    public function onResponse(FilterResponseEvent $event): void
+    public function onResponse(ResponseEvent $event): void
     {
         $request = $event->getRequest();
         $response = $event->getResponse();
 
         if (
             $response instanceof CachedResponse
-            || !$event->isMasterRequest()
+            || !$event->isMainRequest()
             || empty($response->getContent())
         ) {
             return;
@@ -155,14 +155,14 @@ class CacheSubscriber implements EventSubscriberInterface
         );
     }
 
-    public function onTerminate(PostResponseEvent $event): void
+    public function onTerminate(TerminateEvent $event): void
     {
         $request = $event->getRequest();
         $response = $event->getResponse();
 
         if (
             !$response instanceof CacheableResponseInterface
-            || !$event->isMasterRequest()
+            || !$event->isMainRequest()
             || !$response->isCacheable()
         ) {
             return;

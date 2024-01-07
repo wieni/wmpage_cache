@@ -2,11 +2,11 @@
 
 namespace Drupal\wmpage_cache\Event;
 
+use Drupal\Component\EventDispatcher\Event;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Access\AccessResultInterface;
 use Drupal\wmpage_cache\Validation\ValidationResult;
 use Drupal\wmpage_cache\Validation\ValidationResultInterface;
-use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 

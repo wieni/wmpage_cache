@@ -82,8 +82,8 @@ class Validation implements EventSubscriberInterface
             CacheableRequestResult::class
         );
         $this->eventDispatcher->dispatch(
-            WmPageCacheEvents::VALIDATE_CACHEABILITY_REQUEST,
-            $event
+            $event,
+            WmPageCacheEvents::VALIDATE_CACHEABILITY_REQUEST
         );
 
         return $event->result();
@@ -104,8 +104,8 @@ class Validation implements EventSubscriberInterface
         );
 
         $this->eventDispatcher->dispatch(
-            WmPageCacheEvents::VALIDATE_CACHEABILITY_RESPONSE,
-            $event
+            $event,
+            WmPageCacheEvents::VALIDATE_CACHEABILITY_RESPONSE
         );
 
         return $event->result();
