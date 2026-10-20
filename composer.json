@@ -11,7 +11,7 @@
     ],
     "require": {
         "php": ">=7.1",
-        "drupal/core": "^9 || ^10"
+        "drupal/core": "^9 || ^10 || ^11"
     },
     "require-dev": {
         "composer-runtime-api": "^2.0",
