@@ -2,18 +2,24 @@
 
 namespace Drupal\wmpage_cache;
 
+use Drupal\Core\Cache\CacheTagsChecksumInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class CacheBuilder implements CacheBuilderInterface, CacheSerializerInterface
 {
+    /** @var CacheTagsChecksumInterface */
+    protected $checksumProvider;
     /** @var bool */
     protected $storeCache;
     /** @var array */
     protected $ignoredHeaders;
 
-    public function __construct(bool $storeCache = true)
-    {
+    public function __construct(
+        CacheTagsChecksumInterface $checksum,
+        bool $storeCache = true
+    ) {
+        $this->checksumProvider = $checksum;
         $this->storeCache = $storeCache;
     }
 
@@ -38,7 +44,8 @@ class CacheBuilder implements CacheBuilderInterface, CacheSerializerInterface
             $request->getMethod(),
             $body,
             $headers,
-            time() + $ttl
+            time() + $ttl,
+            $this->checksumProvider->getCurrentChecksum($tags),
         );
     }
 
@@ -58,6 +65,7 @@ class CacheBuilder implements CacheBuilderInterface, CacheSerializerInterface
                 ? serialize($item->getHeaders())
                 : [],
             'expiry' => $item->getExpiry(),
+            'checksum' => $item->getChecksum(),
         ];
     }
 
@@ -69,7 +77,8 @@ class CacheBuilder implements CacheBuilderInterface, CacheSerializerInterface
             (string) $row['method'],
             empty($row['content']) ? '' : gzuncompress(base64_decode($row['content'])),
             empty($row['headers']) ? [] : unserialize($row['headers'], ['allowed_classes' => false]),
-            (int) $row['expiry']
+            (int) $row['expiry'],
+            (int) $row['checksum'],
         );
     }
 
