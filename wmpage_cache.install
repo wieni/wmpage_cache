@@ -73,7 +73,10 @@ function wmpage_cache_schema()
     return $schema;
 }
 
-function wmpage_cache_update_8001(): void
+/**
+ * Implements hook_update_last_removed().
+ */
+function wmpage_cache_update_last_removed(): int
 {
-    drupal_install_schema('wmpage_cache');
+    return 8001;
 }
