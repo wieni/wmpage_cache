@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-11-27
+### Fixed
+- Add the request method to the cache key. A cached HEAD response has no body, but it shared its cache key with GET
+  requests, so every following GET request returned an empty body. Existing cache entries are no longer found and are
+  rebuilt, which works like a cache flush.
+
 ## [1.1.0] - 2026-10-26
 ### Added
 - Drupal 11 and 12 support.
