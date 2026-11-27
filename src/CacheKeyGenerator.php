@@ -26,7 +26,10 @@ class CacheKeyGenerator implements CacheKeyGeneratorInterface
 
     public function generateCacheKey(Request $request): string
     {
-        $uri = $this->getRequestUri($request);
+        // The method is part of the key: a HEAD response has no body and
+        // must never be served for a GET request.
+        $uri = $this->getRequestUri($request)
+            . '#method=' . strtoupper($request->getMethod());
         if ($roles = $this->getRoles($request)) {
             $uri .= '#roles=' . implode(',', $roles);
         }
